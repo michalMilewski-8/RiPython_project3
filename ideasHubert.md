@@ -1,11 +1,4 @@
----
-title: "Pomysły Huberta"
-author: "Hubert Nastały"
-date: "5/21/2020"
-output: html_document
----
-
-Pomysły na projekt:
+# Pomysły na projekt
 
 1. Porównanie średniej liczby wypożyczeń na każdej stacji w zależności od pory dnia (rano/godziny szczytu).
 2. Porównanie średniej liczby wypożyczeń na każdej stacji w zależności od pory roku.
