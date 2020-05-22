@@ -44,14 +44,11 @@ processWorkplaces <- function(){
 hiringByAge <- function(DF){
   currentYear <- as.integer(format(Sys.Date(), "%Y"))
   DF %>%
-    filter(hour(stoptime) < 10) %>%
+    filter(hour(starttime) < 10) %>%
     mutate(age = case_when(
       currentYear - birth.year < 20 ~ 20,
-      currentYear - birth.year < 30 ~ 30,
       currentYear - birth.year < 40 ~ 40,
-      currentYear - birth.year < 50 ~ 50,
       currentYear - birth.year < 60 ~ 60,
-      currentYear - birth.year < 70 ~ 70,
       currentYear - birth.year < 80 ~ 80,
       TRUE ~ 0
     )) %>%
@@ -60,11 +57,8 @@ hiringByAge <- function(DF){
                 end.station.latitude[1], 
                 end.station.longitude[1], 
                 under20 = sum(age == 20),
-                under30 = sum(age == 30),
                 under40 = sum(age == 40),
-                under50 = sum(age == 50),
                 under60 = sum(age == 60),
-                under70 = sum(age == 70),
                 under80 = sum(age == 80)) -> Res
   
   colnames(Res)[1:4] <- c("stationId", "stationName", "latitude", "longitude")
