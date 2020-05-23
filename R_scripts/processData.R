@@ -219,9 +219,3 @@ processbikeRanking <- function(){
   DF <- bikeRanking(DF)
   fwrite(DF,file="csv_results/bikeRanking_JC.csv", showProgress = TRUE)
 }
-
-#processbikeRanking()
-#processridersbestTimeToRide()
-#processridersbestTimeToRideLong()
-processridersByAge()
-processMostCommonStopPerStation()
