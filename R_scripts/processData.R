@@ -11,6 +11,7 @@ mergeCsv <- function(dirPath,outputName){
   write.csv(merged, file = paste(c("csv_source/csv_merged/",outputName,".csv"), collapse = ''))
 }
 
+## ---- workplaces ----
 workplaces <- function(DF){
   DF %>%
     mutate(weekday = format(as.Date(stoptime), "%u")) %>%
@@ -25,10 +26,12 @@ workplaces <- function(DF){
               womanHires = sum(gender == 2)) %>%
     arrange(desc(hires)) -> Res
   
-  colnames(Res) <- c("stationId", "stationName", "latitude", "longitude", "totalHires", "manHires", "womanHires")
+  colnames(Res) <- c("stationId", "stationName", "latitude", 
+                     "longitude", "totalHires", "manHires", "womanHires")
   return(Res)
 }
 
+## ---- processWorkplaces ----
 processWorkplaces <- function(){
   DF <- read.csv("csv_source/csv_merged/merged_JC_2019.csv")
   DF <- workplaces(DF)
@@ -41,6 +44,7 @@ processWorkplaces <- function(){
   print("Zapisano NY")
 }
 
+## ---- hiringByAge ----
 hiringByAge <- function(DF){
   currentYear <- as.integer(format(Sys.Date(), "%Y"))
   DF %>%
@@ -65,6 +69,7 @@ hiringByAge <- function(DF){
   return(Res)
 }
 
+## ---- processHiringByAge ----
 processHiringByAge <- function(){
   DF <- read.csv("csv_source/csv_merged/merged_JC_2019.csv")
   DF <- hiringByAge(DF)
@@ -77,6 +82,7 @@ processHiringByAge <- function(){
   print("Zapisano NY")
 }
 
+## ---- spendingFreeTime ----
 spendingFreeTime <- function(DF){
   DF %>%
     filter(hour(stoptime) > 10 & hour(stoptime) < 16) %>%
@@ -92,6 +98,7 @@ spendingFreeTime <- function(DF){
   return(Res)
 }
 
+## ---- processSpendingFreeTime ----
 processSpendingFreeTime <- function(){
   DF <- read.csv("csv_source/csv_merged/merged_JC_2019.csv")
   DF <- spendingFreeTime(DF)

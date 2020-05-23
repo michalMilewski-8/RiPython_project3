@@ -6,6 +6,7 @@ runtime: shiny
 library(shiny)
 library(leaflet)
 library(dplyr)
+library(mapview)
 
 workplacesNY <- read.csv("csv_results/workplaces_NY_2019.csv")
 workplacesJC <- read.csv("csv_results/workplaces_JC_2019.csv")

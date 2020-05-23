@@ -2,34 +2,143 @@
 title: "Presentation"
 author: "Hubert Nastały"
 date: "5/23/2020"
-output: ioslides_presentation
+output: slidy_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::read_chunk("R_scripts/processData.R")
+library(leaflet)
+library(dplyr)
+
+workplacesNY <- read.csv("csv_results/workplaces_NY_2019.csv")
+workplacesJC <- read.csv("csv_results/workplaces_JC_2019.csv")
+workplacesDF <- rbind(workplacesJC,workplacesNY)
+spendingFreeTimeNY <- read.csv("csv_results/spendingFreeTime_NY_2019.csv")
+spendingFreeTimeJC <- read.csv("csv_results/spendingFreeTime_JC_2019.csv")
+spendingFreeTimeDF <- rbind(spendingFreeTimeJC,spendingFreeTimeNY)
+hiringByAgeNY <- read.csv("csv_results/hiringByAge_NY_2019.csv")
+hiringByAgeJC <- read.csv("csv_results/hiringByAge_JC_2019.csv")
+hiringByAgeDF <- rbind(hiringByAgeJC,hiringByAgeNY)
 ```
 
-## R Markdown
+## Introduction
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+...
+To display results related to specific bike station we always extract station name, longitude and latitude to mark them on the map respectively.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+## Workplaces - description
 
-## Slide with Bullets
+We wanted to evaluate where the biggest workplaces are. To do that we have taken only hiring data with day from Monday to Friday and with morning hours (before 10). That info we extract from `stoptime`, so we assume people leave bikes by their offices as they go to work with this mean of transport. Finally, we group filtered data by each station and count total number of records and with distinction for men and women.
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+## Workplaces - code
 
-## Slide with R Output
+\tiny
+```{r workplaces}
 
-```{r cars, echo = TRUE}
-summary(cars)
+```
+\normalsize
+
+## Workplaces - results
+
+### Men and women
+
+As we can see, vast majority of all bike returns happened in the middle of Manhattan and for one station in Jersey City. It looks quite reliably as there are a lot of offices in skyscrapers.
+
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                    domain = workplacesDF$totalHires)
+leaflet(workplacesDF) %>%
+  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(totalHires), label = ~stationName,
+             color = ~pal(totalHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = pal, values = ~totalHires,
+            opacity = 1, title="Returned bikes")
 ```
 
-## Slide with Plot
+### Men
 
-```{r pressure}
-plot(pressure)
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                    domain = workplacesDF$manHires)
+leaflet(workplacesDF) %>%
+  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(manHires), label = ~stationName,
+             color = ~pal(manHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = pal, values = ~manHires,
+            opacity = 1, title="Returned bikes by men")
 ```
 
+### Women
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                    domain = workplacesDF$womanHires)
+leaflet(workplacesDF) %>%
+  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(womanHires), label = ~stationName,
+             color = ~pal(womanHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = pal, values = ~womanHires,
+            opacity = 1, title="Returned bikes by women")
+```
+
+### Comparison
+
+Below we can see the layer of bike returns by men overlayed by women bike returns. This order is important because it turns out that vast majority of returns is made by men.
+
+```{r echo=FALSE}
+palBlue <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                    domain = workplacesDF$womanHires)
+palRed <- colorNumeric(palette = colorRamp(c("#FF4E50","#F9D423"), interpolate = "spline"),
+                    domain = workplacesDF$manHires)
+
+leaflet(workplacesDF) %>%
+  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(manHires), label = ~stationName,
+             color = ~palRed(manHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = palRed, values = ~manHires,
+            opacity = 1, title="Returned bikes by men") %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(womanHires), label = ~stationName,
+             color = ~palBlue(womanHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = palBlue, values = ~womanHires,
+            opacity = 1, title="Returned bikes by women")
+```
+
+However, on some of the stations numbers of returns made by women are much higher than on others, so we can assume that near those stations may be placed workplaces that employ a lot of women. 
+
+```{r echo=FALSE}
+palBlue <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                    domain = workplacesDF$womanHires)
+palRed <- colorNumeric(palette = colorRamp(c("#FF4E50","#F9D423"), interpolate = "spline"),
+                    domain = workplacesDF$manHires)
+
+workplacesDF <- workplacesDF %>%
+  filter(stationName %in% c("1 Ave & E 44 St","1 Ave & E 68 St","West St & Chambers St"))
+
+leaflet(workplacesDF) %>%
+  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  addProviderTiles(providers$CartoDB.DarkMatter) %>%
+  fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(manHires), label = ~stationName,
+             color = ~palRed(manHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = palRed, values = ~manHires,
+            opacity = 1, title="Returned bikes by men") %>%
+  addCircles(lat = ~ latitude, lng = ~ longitude,
+             weight = 1, radius = ~sqrt(womanHires), label = ~stationName,
+             color = ~palBlue(womanHires), fillOpacity = 1.0) %>%
+  addLegend("bottomright", pal = palBlue, values = ~womanHires,
+            opacity = 1, title="Returned bikes by women")
+```
