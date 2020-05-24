@@ -142,3 +142,5 @@ leaflet(workplacesDF) %>%
   addLegend("bottomright", pal = palBlue, values = ~womanHires,
             opacity = 1, title="Returned bikes by women")
 ```
+
+## Spending free time - description

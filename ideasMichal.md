@@ -12,4 +12,15 @@
 
 + Długość trasy od grupy wiekowej, płci
 
++ podział na stacje i najczęstsze wyporzyczenia jako customer w zależnośći od pory dnia i tygodnia
+
+## Co będzie realizowane:
+
++ per stacja na wykresie pokaże jak rozkładają się miejsca końcowe;
+
++ Jaka grupa wiekowa najczęściej jeździ, a jaka najdłuższe trasy robi i tu też podział na płeć
+
++ kiedy najczęściej jeżdżą użytkownicy (czas) oraz kiedy jeżdżą najdłużej
+
+- Bonus: ranking rowerów :)
   
