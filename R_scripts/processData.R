@@ -2,6 +2,10 @@ library(dplyr)
 library(lubridate)
 library(data.table)
 
+defaultLat <- 40.730610
+defaultLng <- -73.935242
+defaultZoom <- 11
+
 # setwd("Documents/R_i_Python/Praca_domowa_3/RiPython_project3")
 
 mergeCsv <- function(dirPath,outputName){

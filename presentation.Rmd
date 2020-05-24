@@ -11,6 +11,10 @@ knitr::read_chunk("R_scripts/processData.R")
 library(leaflet)
 library(dplyr)
 
+defaultLat <- 40.730610
+defaultLng <- -73.935242
+defaultZoom <- 11
+
 workplacesNY <- read.csv("csv_results/workplaces_NY_2019.csv")
 workplacesJC <- read.csv("csv_results/workplaces_JC_2019.csv")
 workplacesDF <- rbind(workplacesJC,workplacesNY)
@@ -50,7 +54,7 @@ As we can see, vast majority of all bike returns happened in the middle of Manha
 pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
                     domain = workplacesDF$totalHires)
 leaflet(workplacesDF) %>%
-  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
   fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
   addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -66,7 +70,7 @@ leaflet(workplacesDF) %>%
 pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
                     domain = workplacesDF$manHires)
 leaflet(workplacesDF) %>%
-  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
   fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
   addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -81,7 +85,7 @@ leaflet(workplacesDF) %>%
 pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
                     domain = workplacesDF$womanHires)
 leaflet(workplacesDF) %>%
-  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
   fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
   addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -93,7 +97,7 @@ leaflet(workplacesDF) %>%
 
 ### Comparison
 
-Below we can see the layer of bike returns by men overlayed by women bike returns. This order is important because it turns out that vast majority of returns is made by men.
+Below we can see the layer of bike returns by men overlayed by women bike returns. This order is important because it turns out that most of returns is made by men.
 
 ```{r echo=FALSE}
 palBlue <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
@@ -102,7 +106,7 @@ palRed <- colorNumeric(palette = colorRamp(c("#FF4E50","#F9D423"), interpolate =
                     domain = workplacesDF$manHires)
 
 leaflet(workplacesDF) %>%
-  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
   fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
   addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -129,7 +133,7 @@ workplacesDF <- workplacesDF %>%
   filter(stationName %in% c("1 Ave & E 44 St","1 Ave & E 68 St","West St & Chambers St"))
 
 leaflet(workplacesDF) %>%
-  setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+  setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
   addProviderTiles(providers$CartoDB.DarkMatter) %>%
   fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
   addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -160,39 +164,40 @@ In this issue we have tried to estimate locations that are chosen willingly by c
 pal = colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
                            domain = spendingFreeTimeDF$hires)
 leaflet(spendingFreeTimeDF) %>%
-    setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+    setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
     addProviderTiles(providers$CartoDB.DarkMatter) %>%
     fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
     addCircles(lat = ~ latitude, lng = ~ longitude,
                weight = 1, radius = ~sqrt(hires), label = ~stationName,
                color = ~pal(hires), fillOpacity = 1.0) %>%
     addLegend("bottomright", pal = pal, values = ~hires, 
-              opacity = 1, title="Number of returned bikes")
+              opacity = 1, title="Returned bikes")
 ```
 
-Basing on the plot, people like to spend their weekend middays mostly in the Central Park and on the west coast of Manhattan. Also some others parks and squares are usually chosen as a destination. To make it clearer, only stations with return number greater than 5000 are presented.
+Basing on the plot, people like to spend their weekend middays mostly in the Central Park and on the west coast of Manhattan. Also some others parks and squares are usually chosen as a destination. To make it clearer, only stations with return number greater than 5000 are presented below (marked with red spots).
 
 ```{r echo=FALSE}
-pal = colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
-                           domain = spendingFreeTimeDF$hires)
-
 spendingFreeTimeDF <- spendingFreeTimeDF %>%
   filter(hires > 5000)
 
 leaflet(spendingFreeTimeDF) %>%
-    setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
-    addProviderTiles(providers$CartoDB.DarkMatter) %>%
+    setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
+    addProviderTiles(providers$OpenStreetMap) %>%
     fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
     addCircles(lat = ~ latitude, lng = ~ longitude,
                weight = 1, radius = ~sqrt(hires), label = ~stationName,
-               color = ~pal(hires), fillOpacity = 1.0) %>%
-    addLegend("bottomright", pal = pal, values = ~hires, 
-              opacity = 1, title="Number of returned bikes (more than 5000)")
+               color = "#ff0000", fillOpacity = 1.0)
 ```
 
 ## Hires by age
 
-The aim of this part of our analyzes is to check where people usually live according to their age. We extract data with hour in `starttime` before 10, supposing that average bike rider take a bike in the morning to get to work. We grouped filtered results by station and count records for every of four age groups calculated by `birth.year`: under 20, 20-39, 40-59, 60-79.
+The aim of this part of our analyzes is to check where people usually live according to their age. We extract data with hour in `starttime` column before 10, supposing that average bike rider take a bike in the morning to get to work. We grouped filtered results by station and count records for every of four age groups calculated using `birth.year` column: under 20, 20-39, 40-59 and 60-79.
+
+\tiny
+```{r hiringByAge}
+
+```
+\normalsize
 
 ## Hires by age - results
 
@@ -203,7 +208,7 @@ pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interp
                      domain = hiringByAgeDF$under20)
 
 leaflet(hiringByAgeDF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$CartoDB.DarkMatter) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -220,7 +225,7 @@ under20DF <- hiringByAgeDF %>%
   filter(under20 > 200)
 
 leaflet(under20DF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$OpenStreetMap) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -237,7 +242,7 @@ pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interp
                      domain = hiringByAgeDF$under40)
 
 leaflet(hiringByAgeDF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$CartoDB.DarkMatter) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -254,7 +259,7 @@ pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interp
                      domain = hiringByAgeDF$under40)
 
 leaflet(hiringByAgeDF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$OpenStreetMap) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -275,7 +280,7 @@ palRed <- colorNumeric(palette = colorRamp(c("#FF4E50","#F9D423"), interpolate =
                     domain = hiringByAgeDF$under40)
 
 leaflet(hiringByAgeDF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$CartoDB.DarkMatter) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
@@ -292,12 +297,14 @@ leaflet(hiringByAgeDF) %>%
 
 ### Between 60 and 80
 
+Elderly still ride by bike, but in much smaller numbers. And still results are similar to two previous groups. We have not succeeded in finding locations where each age group may live. However, we have localized strategic points for transport change, like subway, ferry and railway stations or big carparks.
+
 ```{r echo=FALSE}
 pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
                      domain = hiringByAgeDF$under80)
 
 leaflet(hiringByAgeDF) %>%
-            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            setView(lat = defaultLat, lng = defaultLng, zoom = defaultZoom) %>%
             addProviderTiles(providers$CartoDB.DarkMatter) %>%
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
             addCircles(lat = ~ latitude, lng = ~ longitude,
