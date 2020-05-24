@@ -65,7 +65,7 @@ ui <- navbarPage("BikeAnalyzer",
                      leafletOutput("spendingFreeTimeLeaflet")
                  )
              )),
-    tabPanel("Hiring by age",
+    tabPanel("Hires by age",
              sidebarLayout(
                  sidebarPanel(
                      p("See where people in different age mostly take bikes in the morning, so we can guess typical living location for each age category."),

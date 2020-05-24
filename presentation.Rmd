@@ -14,9 +14,11 @@ library(dplyr)
 workplacesNY <- read.csv("csv_results/workplaces_NY_2019.csv")
 workplacesJC <- read.csv("csv_results/workplaces_JC_2019.csv")
 workplacesDF <- rbind(workplacesJC,workplacesNY)
+
 spendingFreeTimeNY <- read.csv("csv_results/spendingFreeTime_NY_2019.csv")
 spendingFreeTimeJC <- read.csv("csv_results/spendingFreeTime_JC_2019.csv")
 spendingFreeTimeDF <- rbind(spendingFreeTimeJC,spendingFreeTimeNY)
+
 hiringByAgeNY <- read.csv("csv_results/hiringByAge_NY_2019.csv")
 hiringByAgeJC <- read.csv("csv_results/hiringByAge_JC_2019.csv")
 hiringByAgeDF <- rbind(hiringByAgeJC,hiringByAgeNY)
@@ -25,13 +27,12 @@ hiringByAgeDF <- rbind(hiringByAgeJC,hiringByAgeNY)
 ## Introduction
 
 ...
-To display results related to specific bike station we always extract station name, longitude and latitude to mark them on the map respectively.
+To display results related to specific bike station we always extract station name, longitude and latitude to bring them on the map respectively.
+Issues named *Workplaces*, *Spending free time* and *Hires by age* base on data gathered from six months (April-September) of 2019 (as Hubert has no disk space for more). 
 
-## Workplaces - description
+## Workplaces
 
-We wanted to evaluate where the biggest workplaces are. To do that we have taken only hiring data with day from Monday to Friday and with morning hours (before 10). That info we extract from `stoptime`, so we assume people leave bikes by their offices as they go to work with this mean of transport. Finally, we group filtered data by each station and count total number of records and with distinction for men and women.
-
-## Workplaces - code
+We wanted to evaluate where the biggest workplaces are. To do that we take only hiring data with day from Monday to Friday and with morning hours (before 10). That info we extract from `stoptime`, so we assume people leave bikes by their offices as they go to work with this mean of transport. Finally, we group filtered data by each station and count total number of records and with distinction for men and women.
 
 \tiny
 ```{r workplaces}
@@ -143,4 +144,165 @@ leaflet(workplacesDF) %>%
             opacity = 1, title="Returned bikes by women")
 ```
 
-## Spending free time - description
+## Spending free time
+
+In this issue we have tried to estimate locations that are chosen willingly by citizens to spend their free time. Thus, we filter only data with `stoptime` describing weekends and hours between 10 and 16. Eventually, we group data by station and count returns.
+
+\tiny
+```{r spendingFreeTime}
+
+```
+\normalsize
+
+## Spending free time - results
+
+```{r echo=FALSE}
+pal = colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                           domain = spendingFreeTimeDF$hires)
+leaflet(spendingFreeTimeDF) %>%
+    setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+    addProviderTiles(providers$CartoDB.DarkMatter) %>%
+    fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+    addCircles(lat = ~ latitude, lng = ~ longitude,
+               weight = 1, radius = ~sqrt(hires), label = ~stationName,
+               color = ~pal(hires), fillOpacity = 1.0) %>%
+    addLegend("bottomright", pal = pal, values = ~hires, 
+              opacity = 1, title="Number of returned bikes")
+```
+
+Basing on the plot, people like to spend their weekend middays mostly in the Central Park and on the west coast of Manhattan. Also some others parks and squares are usually chosen as a destination. To make it clearer, only stations with return number greater than 5000 are presented.
+
+```{r echo=FALSE}
+pal = colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                           domain = spendingFreeTimeDF$hires)
+
+spendingFreeTimeDF <- spendingFreeTimeDF %>%
+  filter(hires > 5000)
+
+leaflet(spendingFreeTimeDF) %>%
+    setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+    addProviderTiles(providers$CartoDB.DarkMatter) %>%
+    fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+    addCircles(lat = ~ latitude, lng = ~ longitude,
+               weight = 1, radius = ~sqrt(hires), label = ~stationName,
+               color = ~pal(hires), fillOpacity = 1.0) %>%
+    addLegend("bottomright", pal = pal, values = ~hires, 
+              opacity = 1, title="Number of returned bikes (more than 5000)")
+```
+
+## Hires by age
+
+The aim of this part of our analyzes is to check where people usually live according to their age. We extract data with hour in `starttime` before 10, supposing that average bike rider take a bike in the morning to get to work. We grouped filtered results by station and count records for every of four age groups calculated by `birth.year`: under 20, 20-39, 40-59, 60-79.
+
+## Hires by age - results
+
+### Under 20
+
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = hiringByAgeDF$under20)
+
+leaflet(hiringByAgeDF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$CartoDB.DarkMatter) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under20), label = ~stationName,
+                       color = ~pal(under20), fillOpacity = 1.0) %>%
+            addLegend("bottomright", pal = pal, values = ~under20,
+                      opacity = 1, title="Hired bikes (people under 20)")
+```
+
+The number of hires by this age group is not shocking. Young citizens do not prefer to ride bikes or there is no place for young people to live in the middle of New York. However, we can distinguish some light blue points that look interesting among the whole rest. On the map below they are painted red.
+
+```{r echo=FALSE}
+under20DF <- hiringByAgeDF %>%
+  filter(under20 > 200)
+
+leaflet(under20DF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$OpenStreetMap) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under20), label = ~stationName,
+                       color = "#ff0000", fillOpacity = 1.0)
+```
+
+When zooming in towards one of these red points, it turns out that they are situated near two high schools. Therefore, we did not find places where young people may live (except there are dormitories next to highschools), but it could mean that some students end classes or have longer break starting by 10.
+
+### Between 20 and 40
+
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = hiringByAgeDF$under40)
+
+leaflet(hiringByAgeDF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$CartoDB.DarkMatter) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under40), label = ~stationName,
+                       color = ~pal(under40), fillOpacity = 1.0) %>%
+            addLegend("bottomright", pal = pal, values = ~under40,
+                      opacity = 1, title="Hired bikes (people at age 20-39)")
+```
+
+In this age category there are a lot of bike hires. However, we probably again missed the point of this issue. As most of the hires were made in the middle of Manhattan, it probably is not a proof that there live plenty of young adults. More appealing version is that stations with high hire rate are located near the communication nodes like subway stations, Grand Central Terminal or public carparks, where people can switch to bike when going to work.
+
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = hiringByAgeDF$under40)
+
+leaflet(hiringByAgeDF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$OpenStreetMap) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under40), label = ~stationName,
+                       color = ~pal(under40), fillOpacity = 0.5) %>%
+            addLegend("bottomright", pal = pal, values = ~under40,
+                      opacity = 1, title="Hired bikes (people at age 20-39)")
+```
+
+### Between 40 and 60
+
+Results for this age group look pretty similar to previous group as both consist of citizens at working age. The new conclusion is that people from the former group ride bikes more often, but it should not be surprise.
+
+```{r echo=FALSE}
+palBlue <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = hiringByAgeDF$under60)
+palRed <- colorNumeric(palette = colorRamp(c("#FF4E50","#F9D423"), interpolate = "spline"),
+                    domain = hiringByAgeDF$under40)
+
+leaflet(hiringByAgeDF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$CartoDB.DarkMatter) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under40), label = ~stationName,
+                       color = ~palRed(under40), fillOpacity = 0.7) %>%
+            addLegend("bottomright", pal = palRed, values = ~under40,
+                      opacity = 1, title="Hired bikes (people at age 20-39)") %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under60), label = ~stationName,
+                       color = ~palBlue(under60), fillOpacity = 0.7) %>%
+            addLegend("bottomright", pal = palBlue, values = ~under60,
+                      opacity = 1, title="Hired bikes (people at age 40-59)")
+```
+
+### Between 60 and 80
+
+```{r echo=FALSE}
+pal <- colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = hiringByAgeDF$under80)
+
+leaflet(hiringByAgeDF) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$CartoDB.DarkMatter) %>%
+            fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude)) %>%
+            addCircles(lat = ~ latitude, lng = ~ longitude,
+                       weight = 1, radius = ~sqrt(under80), label = ~stationName,
+                       color = ~pal(under80), fillOpacity = 1.0) %>%
+            addLegend("bottomright", pal = pal, values = ~under80,
+                      opacity = 1, title="Hired bikes (people at age 60-79)")
+```
