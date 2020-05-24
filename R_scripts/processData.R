@@ -165,7 +165,7 @@ bestTimeToRide <- function(DF){
     mutate(DayHour = hour(starttime))%>%
     mutate(weekday = as.numeric(format(as.Date(stoptime), "%u"))) %>%
     group_by(weekday, DayHour)%>%
-    summarise(Count = n(), Mean = mean(tripduration)) -> Res
+      summarise(Count = n(), Mean = mean(tripduration)) -> Res
   return(Res)
 }
 
