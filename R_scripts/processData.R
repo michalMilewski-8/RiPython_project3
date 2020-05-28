@@ -126,6 +126,7 @@ processSpendingFreeTime <- function(){
   print("Zapisano NY")
 }
 
+## ---- mostCommonStopPerStation   ----
 mostCommonStopPerStation <- function(DF){
   DF %>%
     mutate(DayTime = if_else(hour(stoptime)>0&hour(stoptime)<12,"morning","afternoon"))%>%
@@ -142,6 +143,7 @@ mostCommonStopPerStation <- function(DF){
   return(Res)
 }
 
+## ---- processMostCommonStopPerStation ----
 processMostCommonStopPerStation <- function(){
   DF <- as.data.table(fread("csv_source/csv_merged/NYC_2019_merged.csv",))
   DF <- mostCommonStopPerStation(DF)
@@ -152,17 +154,19 @@ processMostCommonStopPerStation <- function(){
   fwrite(DF,file="csv_results/MostCommonStopPerStation_JC.csv", showProgress = TRUE)
 }
 
+## ---- ridersByAge ----
 ridersByAge <- function(DF){
   DF %>%
     filter(usertype == "Subscriber" & !is.na(as.integer(birth.year)) & gender != 0) %>%
     mutate(AgeGroup = plyr::round_any((2019 - as.integer(birth.year)),10,f = floor)) %>%
+    filter(AgeGroup < 100) %>%
     group_by(AgeGroup, gender)%>%
     summarise(Count = n(),Mean = mean(tripduration), Median = median(tripduration), Max = quantile(tripduration,.99), percentile90th = quantile(tripduration,.90)) -> Res
   
   return(Res)
 }
 
-
+## ---- processridersByAge ----
 processridersByAge <- function(){
   DF <- fread("csv_source/csv_merged/NYC_2019_merged.csv",stringsAsFactors = FALSE)
   DF <- ridersByAge(DF)
@@ -173,27 +177,29 @@ processridersByAge <- function(){
   fwrite(DF,file="csv_results/RidersByAgeAndGender_JC.csv", showProgress = TRUE)
 }
 
+## ---- bestTimeToRide ----
 bestTimeToRide <- function(DF){
   DF %>%
     mutate(DayHour = hour(starttime))%>%
-    mutate(weekday = as.numeric(format(as.Date(stoptime), "%u"))) %>%
+    mutate(weekday = as.numeric(format(as.Date(starttime), "%u"))) %>%
     group_by(weekday, DayHour)%>%
       summarise(Count = n(), Mean = mean(tripduration)) -> Res
   return(Res)
 }
 
+## ---- bestTimeToRideLong ----
 bestTimeToRideLong <- function(DF){
   highval = quantile(DF$tripduration,.98)
   DF %>%
     filter(tripduration >= highval) %>%
     mutate(DayHour = hour(starttime))%>%
-    mutate(weekday = as.numeric(format(as.Date(stoptime), "%u"))) %>%
+    mutate(weekday = as.numeric(format(as.Date(starttime), "%u"))) %>%
     group_by(weekday, DayHour)%>%
     summarise(Count = n(), Mean = mean(tripduration)) -> Res
   return(Res)
 }
 
-
+## ---- processridersbestTimeToRide ----
 processridersbestTimeToRide <- function(){
   DF <- fread("csv_source/csv_merged/NYC_2019_merged.csv",stringsAsFactors = FALSE)
   DF <- bestTimeToRide(DF)
@@ -204,6 +210,7 @@ processridersbestTimeToRide <- function(){
   fwrite(DF,file="csv_results/BestTimeToRider_JC.csv", showProgress = TRUE)
 }
 
+## ---- processridersbestTimeToRideLong ----
 processridersbestTimeToRideLong <- function(){
   DF <- fread("csv_source/csv_merged/NYC_2019_merged.csv",stringsAsFactors = FALSE)
   DF <- bestTimeToRideLong(DF)
@@ -214,6 +221,8 @@ processridersbestTimeToRideLong <- function(){
   fwrite(DF,file="csv_results/bestTimeToRideLong_JC.csv", showProgress = TRUE)
 }
 
+
+## ---- bikeRanking ----
 bikeRanking <- function(DF){
   DF %>%
     group_by(bikeid)%>%
@@ -223,6 +232,7 @@ bikeRanking <- function(DF){
   return(Res)
 }
 
+## ---- processbikeRanking ----
 processbikeRanking <- function(){
   DF <- fread("csv_source/csv_merged/NYC_2019_merged.csv",stringsAsFactors = FALSE)
   DF <- bikeRanking(DF)

@@ -38,9 +38,9 @@ ridersByAgeAndGenderJC <- as.data.table(read.csv("csv_results/RidersByAgeAndGend
 ridersByAgeAndGenderNY <- as.data.table(read.csv("csv_results/RidersByAgeAndGender_NYC_2019.csv"))
 ridersByAgeAndGender <- rbind(ridersByAgeAndGenderJC,ridersByAgeAndGenderNY)
 
-# mostCommonStopPerStationJC <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_JC.csv"))
-# mostCommonStopPerStationNY <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_NYC_2019.csv"))
-# mostCommonStopPerStation <- rbind(mostCommonStopPerStationJC,mostCommonStopPerStationNY)
+mostCommonStopPerStationJC <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_JC.csv"))
+mostCommonStopPerStationNY <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_NYC_2019.csv"))
+mostCommonStopPerStation <- rbind(mostCommonStopPerStationJC,mostCommonStopPerStationNY)
 
 
 ui <- navbarPage("BikeAnalyzer",
@@ -77,22 +77,22 @@ ui <- navbarPage("BikeAnalyzer",
                      leafletOutput("hiringByAgeLeaflet")
                  )
              )),
-    # tabPanel("Most Common Destination",
-    #          sidebarLayout(
-    #              sidebarPanel(
-    #                  p("Here you can see what destination was most common for riders starting on choosen station and time of the day (afternoon(12-23) or morning(0-11)). You can see how some of the destination were more common"),
-    #                  selectInput("stationName",
-    #                              "Station Name:",
-    #                              unique(mostCommonStopPerStation$start.station.name)),
-    #                  selectInput("timeOfDay",
-    #                              "Station Name:",
-    #                              unique(mostCommonStopPerStation$DayTime))
-    #              ),
-    #              mainPanel(
-    #                  leafletOutput("mostCommonDestinationLeaflet")
-    #                  
-    #              )
-    #          )),
+    tabPanel("Most Common Destination",
+             sidebarLayout(
+                 sidebarPanel(
+                     p("Here you can see what destination was most common for riders starting on choosen station and time of the day (afternoon(12-23) or morning(0-11)). You can see how some of the destination were more common"),
+                     selectInput("stationName",
+                                 "Station Name:",
+                                 unique(mostCommonStopPerStation$start.station.name)),
+                     selectInput("timeOfDay",
+                                 "Station Name:",
+                                 unique(mostCommonStopPerStation$DayTime))
+                 ),
+                 mainPanel(
+                     leafletOutput("mostCommonDestinationLeaflet")
+
+                 )
+             )),
     tabPanel("When people most ride bikes",
              sidebarLayout(
                  sidebarPanel(
@@ -147,10 +147,10 @@ server <- function(input, output) {
                      domain = hiringByAge[[input$ageCategory]])
     })
     
-    # mostCommonEndsColorpal <- reactive({
-    #     colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
-    #                  domain = as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']])
-    # })
+    mostCommonEndsColorpal <- reactive({
+        colorNumeric(palette = colorRamp(c("#0052D4","#65C7F7","#9CECFB"), interpolate = "spline"),
+                     domain = as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']])
+    })
     
     # outputs
 
@@ -182,11 +182,11 @@ server <- function(input, output) {
             fitBounds(~min(longitude), ~min(latitude), ~max(longitude), ~max(latitude))
     })
     
-    # output$mostCommonDestinationLeaflet <- renderLeaflet({
-    #     leaflet(mostCommonStopPerStation) %>%
-    #         setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
-    #         addProviderTiles(providers$CartoDB.DarkMatter) 
-    # })
+    output$mostCommonDestinationLeaflet <- renderLeaflet({
+        leaflet(mostCommonStopPerStation) %>%
+            setView(lat = 40.730610, lng = -73.935242, zoom = 11) %>%
+            addProviderTiles(providers$CartoDB.DarkMatter)
+    })
     
     output$timetoRidePlot <- renderPlot({ coef <- 0.01
         ggplot(bestTimeToRideNY[weekday == input$weekday,],aes(x=DayHour))+
@@ -254,20 +254,20 @@ server <- function(input, output) {
                       opacity = 1, title="Number of hired bikes")
     })
     
-    # observe({
-    #     pal = mostCommonEndsColorpal()
-    #     leafletProxy("mostCommonDestinationLeaflet", data = mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay,]) %>%
-    #         clearShapes() %>% clearControls() %>%
-    #         addCircles(lat = ~ end.station.latitude, lng = ~ end.Station.Longitude,
-    #                    weight = 1, radius = ~sqrt(as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']]), label = ~end.station.name,
-    #                    color = pal(as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']]),
-    #                    fillOpacity = 1.0) %>%
-    #         addLegend("bottomright", pal = pal, values = ~as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']],
-    #                   opacity = 1, title="Number of ended rides") %>%
-    #         addCircles(lat = mostCommonStopPerStation[start.station.name == input$stationName ,.(start.station.latitude)][[1]],
-    #                    lng = mostCommonStopPerStation[start.station.name == input$stationName ,.(start.station.longitude)][[1]],
-    #                    color = 'red',fillColor = 'red',weight = 1, radius = 10)
-    # })
+    observe({
+        pal = mostCommonEndsColorpal()
+        leafletProxy("mostCommonDestinationLeaflet", data = mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay,]) %>%
+            clearShapes() %>% clearControls() %>%
+            addCircles(lat = ~ end.station.latitude, lng = ~ end.Station.Longitude,
+                       weight = 1, radius = ~sqrt(as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']]), label = ~end.station.name,
+                       color = pal(as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']]),
+                       fillOpacity = 1.0) %>%
+            addLegend("bottomright", pal = pal, values = ~as.data.frame(mostCommonStopPerStation[start.station.name == input$stationName & DayTime == input$timeOfDay ,.(Count)])[['Count']],
+                      opacity = 1, title="Number of ended rides") %>%
+            addCircles(lat = mostCommonStopPerStation[start.station.name == input$stationName ,.(start.station.latitude)][[1]],
+                       lng = mostCommonStopPerStation[start.station.name == input$stationName ,.(start.station.longitude)][[1]],
+                       color = 'red',fillColor = 'red',weight = 1, radius = 10)
+    })
 }
 
 # Run the application 

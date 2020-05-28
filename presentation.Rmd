@@ -1,7 +1,7 @@
 ---
 title: "Presentation"
-author: "Hubert Nastały"
-date: "5/23/2020"
+author: "Hubert Nastały, Michał Milewski"
+date: "spring 2020"
 output: slidy_presentation
 ---
 
@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::read_chunk("R_scripts/processData.R")
 library(leaflet)
 library(dplyr)
+library(data.table)
+library(ggplot2)
 
 defaultLat <- 40.730610
 defaultLng <- -73.935242
@@ -26,6 +28,26 @@ spendingFreeTimeDF <- rbind(spendingFreeTimeJC,spendingFreeTimeNY)
 hiringByAgeNY <- read.csv("csv_results/hiringByAge_NY_2019.csv")
 hiringByAgeJC <- read.csv("csv_results/hiringByAge_JC_2019.csv")
 hiringByAgeDF <- rbind(hiringByAgeJC,hiringByAgeNY)
+
+bikeRankingJC <- as.data.table(read.csv("csv_results/bikeRanking_JC.csv"))
+bikeRankingNY <- as.data.table(read.csv("csv_results/bikeRanking_NYC_2019.csv"))
+bikeRankingB <- rbind(bikeRankingJC,bikeRankingNY) 
+
+bestTimeToRideJC <- as.data.table(read.csv("csv_results/BestTimeToRider_JC.csv"))
+bestTimeToRideNY <- as.data.table(read.csv("csv_results/BestTimeToRider_NYC_2019.csv"))
+bestTimeToRide <- rbind(bestTimeToRideJC,bestTimeToRideNY)
+
+bestTimeToRideLongJC <- as.data.table(read.csv("csv_results/bestTimeToRideLong_JC.csv"))
+bestTimeToRideLongNY <- as.data.table(read.csv("csv_results/bestTimeToRideLong_NYC_2019.csv"))
+bestTimeToRideLong <- rbind(bestTimeToRideLongJC,bestTimeToRideLongNY)
+
+ridersByAgeAndGenderJC <- as.data.table(read.csv("csv_results/RidersByAgeAndGender_JC.csv"))
+ridersByAgeAndGenderNY <- as.data.table(read.csv("csv_results/RidersByAgeAndGender_NYC_2019.csv"))
+ridersByAgeAndGender <- rbind(ridersByAgeAndGenderJC,ridersByAgeAndGenderNY)
+
+# mostCommonStopPerStationJC <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_JC.csv"))
+# mostCommonStopPerStationNY <- as.data.table(read.csv("csv_results/MostCommonStopPerStation_NYC_2019.csv"))
+# mostCommonStopPerStation <- rbind(mostCommonStopPerStationJC,mostCommonStopPerStationNY)
 ```
 
 ## Introduction
@@ -312,4 +334,368 @@ leaflet(hiringByAgeDF) %>%
                        color = ~pal(under80), fillOpacity = 1.0) %>%
             addLegend("bottomright", pal = pal, values = ~under80,
                       opacity = 1, title="Hired bikes (people at age 60-79)")
+```
+
+## Riders by Age and gender statistics
+
+Here we want to analyse how does the different age groups ride their bikes. Which age group and gender rides most often? Which age group rides averagely the longest? Are there any differences between genders? Which age group rides actually the longest? Do the elderly people even ride the bikes?  Do people after retirement age ride bikes more then people just before? 
+
+Data extraction: We only choose records where there is gender and birth year specified. For every record there is `AgeGroup` added. The age group is specified as such: 0-9 years old is 0's, 10-19 years old is 10's and so on. Then records are grouped by `ageGroup` and `gender`. For every group there is number of records counted, average trip duration, trips longer than 99% of the rest in group -this is called `Max` here. There is also 90th percentile computed so as to see if the max length of the most rides - maybe there are a lot of short rides and couple really long rides.
+
+
+\tiny
+```{r ridersByAge}
+
+```
+\normalsize
+
+## Riders by Age and gender statistics - results
+
+Fun fact is that people after 100 rides a bit more often than people just before 100 :) (actually not shown on this plots). To be frank, I think that this is just a error in data - probably people when registering choosen random number as theirs birth year. So in the folllowing plots there is no statistics for over 100 years old users 
+
+### Count of rides
+Here we can see that majority of riders are men despite age group. The most active age group is 30's. We can see that younger people rides definitelly more often. It is important to notice that the y-axis scale is logarithmic.
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Count"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("Count") + labs(fill='Gender') + scale_y_log10()
+# knitr::kable(ridersByAgeAndGenderNY)
+```
+
+And this is the version with normal scales. Here it is better seen the difference between genders and ages.
+
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Count"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("Count") + labs(fill='Gender')
+```
+
+### Average trip duration
+
+On this plot we can see that women rides averagedly longer than men. Most age groups have really close average trip duration time. Only really elderly people (90's) rides a bit shorter. The women in their 80's rides longer than ones other groups. Average trip duration is about 13-14 mins
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Mean"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("Mean") + labs(fill='Gender')
+```
+
+### Max of trip duration
+
+In this statistics max is actually taken as a trip duration that is longer than 99% of whole trips. Don elike that so as to not show some data that are simple errors like not returned bike and so on. 
+
+Here we can see that women still rides longer than men. All of the groups have pretty the same max trip duration time. Only in 80's there is high spike in women longest rides. Maybe thats results of really long riding grandma :). And in 10's group males ride a bit longer than women. The difference is slight but it is possible to see that women in their 40's rides the longest (not counting the super grandma). This results shows that people rides about 43 minutes max.
+
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Max"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("Max") + labs(fill='Gender')
+```
+
+### Median of trip duration
+Here is the same situation, women rides longer. For woomen it is about 10-11 mins and for mens it is about 8-9 mins. 
+
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Median"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("Median") + labs(fill='Gender')
+```
+
+### 90th percentile of trip duration
+Jus as i thought there are more shorter rides and couple long rides. 90 percent of rides are shorter than 25 mins for men and 27min for women
+
+```{r echo=FALSE}
+ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["percentile90th"]], fill = factor(gender, labels = c("male", "female") ))) +
+        geom_bar(position="dodge", stat="identity") +
+        ggtitle("Statistics by age Group and gender" ) +
+        xlab("Age Group") + ylab("percentile90th") + labs(fill='Gender')
+```
+
+## When is the best time to ride? According to NYC riders
+
+The purpose of this statistics was to found out whether there are some patterns houres at whitch people start their rides at different days. I hypothesised that from Monday to Friday more people ride bikes at the morning and in the evening. So let us found out what the results shown.
+
+Data Extraction: Here we find at what time and at what day of week the ride was started. Then after grouping by weekday and time of the day, number of records was counted and average trip duration in each group was counted
+
+\tiny
+```{r bestTimeToRide}
+
+```
+\normalsize
+
+## The Results
+
+### From Monday till Friday
+It is clearly seen that most people rides at morning at 7 and in the evening at the 17 or 18. It perfectly corresponds with the work time of the most people. At night olmost no one rides a bike and in the middle of the day there are still some people riding the bikes. The average trip duration is a bit londer in the afternoon about 17 mins. Actually at night it is highest but i think that this is caused be not returned bikes (after some party or something). Every working day looks pretty the same. average
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 1,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Monday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 2,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Tuesday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 3,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Wednesday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 4,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Thursday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 5,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Friday") +xlab("Hour")
+```
+
+### Weekends
+
+At weekends this plots looks more aestetically pleasing to my eye :). More people ride bikes in the middle of the day - from 10 till like 17. It is probably caused by people having free time and wanting to relaks a bit. Also the average ride time is a bit longer than in the working days, about 20 mins. 
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 6,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Saturday") +xlab("Hour")
+```
+
+On Sunday a bit less people ride the bikes than on Saturday.
+
+```{r, echo=FALSE}
+coef <- 0.01
+        ggplot(bestTimeToRideNY[weekday == 7,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Sunday") +xlab("Hour")
+```
+
+## When is the best time to ride but this time the longest? According to NYC riders
+
+The purpose of this statistics was to show when people ride the longest trips.
+
+Data Extraction: Here we find at what time and at what day of week the ride was started. Then after grouping by weekday and time of the day, number of records was counted and average trip duration in each group was counted. But only rides longer than 98 percent of other rides was taken under attention
+
+\tiny
+```{r bestTimeToRideLong}
+
+```
+\normalsize
+
+## The Results
+
+### From Monday till Friday
+Here we can see that people mostly rides in the afternoon. the peak is at about 18. At letter times the rides gets longer. In the morning considerably less people rides their bikes. This longest rides are realy long averagedly :) 
+
+```{r, echo=FALSE}
+coef <- 10
+        ggplot(bestTimeToRideLongNY[weekday == 1,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Monday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 10
+        ggplot(bestTimeToRideLongNY[weekday == 2,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Tuesday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 10
+        ggplot(bestTimeToRideLongNY[weekday == 3,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Wednesday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 10
+        ggplot(bestTimeToRideLongNY[weekday == 4,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Thursday") +xlab("Hour")
+```
+
+```{r, echo=FALSE}
+coef <- 10
+        ggplot(bestTimeToRideLongNY[weekday == 5,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Friday") +xlab("Hour")
+```
+
+### Weekends
+
+At weekend considerably more people ride the bikes the longest. The average trip time is pretty much comparable. 
+```{r, echo=FALSE}
+coef <- 15
+        ggplot(bestTimeToRideLongNY[weekday == 6,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Saturday") +xlab("Hour")
+```
+
+On Sunday a bit less people ride the bikes the longest than on Saturday.
+
+```{r, echo=FALSE}
+coef <- 15
+        ggplot(bestTimeToRideLongNY[weekday == 7,],aes(x=DayHour))+
+            geom_line(aes(y = Count,color = "Number Of Riders"))+ 
+            geom_line(aes(y = Mean/coef,color = "Average trip duration"))+ 
+            scale_y_continuous(
+                
+                # Features of the first axis
+                name = "Number Of Riders",
+                
+                # Add a second axis and specify its features
+                sec.axis = sec_axis(~.*coef, name="Average trip duration")
+            ) + ggtitle("Riders and average ride duration per hour - Sunday") +xlab("Hour")
+```
+
+
+## Bonus - bikes top 10 :)
+
+Purpose: Everybody likes rankings so why not do a bikes ranking? No deeper meaning, probably :)
+
+Data Extraction: Data is grouped by `bikeid` then number of uses, summed time of usage and average usage time per use is extracted, simple.
+\tiny
+```{r bikeRanking}
+
+```
+\normalsize
+
+## Rankings results
+
+### Most often used bike
+```{r echo=FALSE}
+setorderv(bikeRankingNY,"CountOfRenting",order = -1L)
+knitr::kable(head(bikeRankingNY,10L))
+```
+
+### The longest used bike
+```{r echo=FALSE}
+setorderv(bikeRankingNY,"SumOfRentedTime",order = -1L)
+knitr::kable(head(bikeRankingNY,10L))
+```
+
+### The longest average use of the bike
+```{r echo=FALSE}
+setorderv(bikeRankingNY,"AverageRentTime",order = -1L)
+knitr::kable(head(bikeRankingNY,10L))
 ```
