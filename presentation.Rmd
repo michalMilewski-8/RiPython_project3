@@ -355,6 +355,7 @@ Fun fact is that people after 100 rides a bit more often than people just before
 
 ### Count of rides
 Here we can see that majority of riders are men despite age group. The most active age group is 30's. We can see that younger people rides definitelly more often. It is important to notice that the y-axis scale is logarithmic.
+
 ```{r echo=FALSE}
 ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Count"]], fill = factor(gender, labels = c("male", "female") ))) +
         geom_bar(position="dodge", stat="identity") +
@@ -375,6 +376,7 @@ ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Count
 ### Average trip duration
 
 On this plot we can see that women rides averagedly longer than men. Most age groups have really close average trip duration time. Only really elderly people (90's) rides a bit shorter. The women in their 80's rides longer than ones other groups. Average trip duration is about 13-14 mins
+
 ```{r echo=FALSE}
 ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Mean"]], fill = factor(gender, labels = c("male", "female") ))) +
         geom_bar(position="dodge", stat="identity") +
@@ -396,7 +398,7 @@ ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Max"]
 ```
 
 ### Median of trip duration
-Here is the same situation, women rides longer. For woomen it is about 10-11 mins and for mens it is about 8-9 mins. 
+Here is the same situation, women rides longer. For women it is about 10-11 mins and for mens it is about 8-9 mins. 
 
 ```{r echo=FALSE}
 ggplot(ridersByAgeAndGenderNY,aes(x=AgeGroup, y = ridersByAgeAndGenderNY[["Median"]], fill = factor(gender, labels = c("male", "female") ))) +
@@ -431,6 +433,7 @@ Data Extraction: Here we find at what time and at what day of week the ride was 
 
 ### From Monday till Friday
 It is clearly seen that most people rides at morning at 7 and in the evening at the 17 or 18. It perfectly corresponds with the work time of the most people. At night olmost no one rides a bike and in the middle of the day there are still some people riding the bikes. The average trip duration is a bit londer in the afternoon about 17 mins. Actually at night it is highest but i think that this is caused be not returned bikes (after some party or something). Every working day looks pretty the same. average
+
 ```{r, echo=FALSE}
 coef <- 0.01
         ggplot(bestTimeToRideNY[weekday == 1,],aes(x=DayHour))+
@@ -508,7 +511,8 @@ coef <- 0.01
 
 ### Weekends
 
-At weekends this plots looks more aestetically pleasing to my eye :). More people ride bikes in the middle of the day - from 10 till like 17. It is probably caused by people having free time and wanting to relaks a bit. Also the average ride time is a bit longer than in the working days, about 20 mins. 
+At weekends this plots looks more aestetically pleasing to my eye :). More people ride bikes in the middle of the day - from 10 till like 17. It is probably caused by people having free time and wanting to relaks a bit. Also the average ride time is a bit longer than in the working days, about 20 mins.
+
 ```{r, echo=FALSE}
 coef <- 0.01
         ggplot(bestTimeToRideNY[weekday == 6,],aes(x=DayHour))+
@@ -636,6 +640,7 @@ coef <- 10
 ### Weekends
 
 At weekend considerably more people ride the bikes the longest. The average trip time is pretty much comparable. 
+
 ```{r, echo=FALSE}
 coef <- 15
         ggplot(bestTimeToRideLongNY[weekday == 6,],aes(x=DayHour))+
@@ -674,6 +679,7 @@ coef <- 15
 Purpose: Everybody likes rankings so why not do a bikes ranking? No deeper meaning, probably :)
 
 Data Extraction: Data is grouped by `bikeid` then number of uses, summed time of usage and average usage time per use is extracted, simple.
+
 \tiny
 ```{r bikeRanking}
 
